@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISON.OS | Terminal Access</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .login-container {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(10, 12, 16, 0.6);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .login-header h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-top: 1rem;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(157, 80, 187, 0.3);
+        }
+
+        .error-msg {
+            background: rgba(255, 75, 43, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 75, 43, 0.2);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .login-footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body style="display: block;">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">PRISON.OS</div>
+                <h2>Security Terminal</h2>
+                <p>Authorize to access management systems</p>
+            </div>
+
+            {% if error %}
+            <div class="error-msg">
+                <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('login') }}" method="POST">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" placeholder="Enter username" required
+                        autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Encrypted Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required
+                        autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-login">Initialize Access</button>
+            </form>
+
+            <div class="login-footer">
+                <p>Trouble logging in? <a href="#">Contact Ops Support</a></p>
+                <div style="margin-top: 1.5rem; font-size: 0.75rem; letter-spacing: 1px;">
+                    ENCRYPTION LEVEL: AES-256-GCM
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

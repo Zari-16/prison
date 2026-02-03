@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISON.OS | Intelligent Security</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-pure: #000000;
+            --text-pure: #ffffff;
+            --text-dim: #888888;
+            --btn-dark: #1a1a1a;
+            --accent-red: #FF4B2B;
+        }
+
+        body {
+            background-color: var(--bg-pure);
+            color: var(--text-pure);
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100vw;
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+
+        /* Left Side: Infographic */
+        .infographic-side {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+            position: relative;
+        }
+
+        .radar-svg {
+            width: 80%;
+            height: auto;
+            max-width: 500px;
+            opacity: 0.8;
+        }
+
+        /* Right Side: Content */
+        .content-side {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10% 0 5%;
+            position: relative;
+        }
+
+        .meta-header {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            top: 10%;
+            left: 5%;
+            right: 10%;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .hero-text {
+            max-width: 600px;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 600;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            letter-spacing: -1px;
+        }
+
+        .hero-text h1 span.dim {
+            color: var(--text-dim);
+        }
+
+        .hero-text p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-minimal {
+            padding: 0.8rem 2.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .btn-white {
+            background-color: var(--text-pure);
+            color: var(--bg-pure);
+        }
+
+        .btn-white:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline-dim {
+            background-color: transparent;
+            color: var(--text-dim);
+            border: 1px solid #333;
+        }
+
+        .btn-outline-dim:hover {
+            color: var(--text-pure);
+            border-color: #555;
+        }
+
+        /* Feature Section */
+        .feature-grid {
+            padding: 8rem 10% 4rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            background-color: var(--bg-pure);
+        }
+
+        .minimal-card {
+            border: 1px solid #222;
+            padding: 2.5rem;
+            border-radius: 12px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.01);
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .minimal-card.reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .minimal-card:hover {
+            border-color: #555;
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Orbital Glow Effect */
+        .minimal-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, var(--accent-red));
+            animation: rotate-glow 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        .minimal-card:hover::after {
+            opacity: 0.1;
+        }
+
+        @keyframes rotate-glow {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .minimal-card i {
+            font-size: 1.5rem;
+            color: var(--text-pure);
+            margin-bottom: 1.5rem;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .minimal-card:hover i {
+            transform: scale(1.2);
+            color: var(--accent-red);
+            text-shadow: 0 0 15px var(--accent-red);
+        }
+
+        .minimal-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .minimal-card:hover h3 {
+            color: var(--text-pure);
+        }
+
+        .minimal-card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .minimal-card:hover p {
+            color: #ccc;
+        }
+
+        /* Footer CTA */
+        .footer-cta {
+            padding: 6rem 10% 10rem;
+            text-align: center;
+            background: var(--bg-pure);
+        }
+
+        .btn-launch {
+            padding: 1.2rem 4rem;
+            background: var(--text-pure);
+            color: var(--bg-pure);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            animation: pulse-border 2s infinite;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-launch:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse-border {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        /* Radar Animation */
+        .focus-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                r: 4;
+                opacity: 1;
+            }
+
+            50% {
+                r: 6;
+                opacity: 0.5;
+            }
+
+            100% {
+                r: 4;
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .infographic-side {
+                display: none;
+            }
+
+            .content-side {
+                padding: 10% 5%;
+                height: auto;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                padding: 2rem 5%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="split-layout">
+        <!-- Visualization -->
+        <div class="infographic-side">
+            <svg class="radar-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Concentric Circles -->
+                <circle cx="200" cy="200" r="180" stroke="#333" stroke-width="0.5" />
+                <circle cx="200" cy="200" r="140" stroke="#333" stroke-width="0.5" />
+                <circle cx="200" cy="200" r="100" stroke="#333" stroke-width="0.5" />
+                <circle cx="200" cy="200" r="60" stroke="#333" stroke-width="0.5" />
+
+                <!-- Radial Lines -->
+                <g stroke="#333" stroke-width="0.5">
+                    <line x1="200" y1="20" x2="200" y2="380" />
+                    <line x1="20" y1="200" x2="380" y2="200" />
+                    <line x1="72" y1="72" x2="328" y2="328" />
+                    <line x1="328" y1="72" x2="72" y2="328" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(30 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(60 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(120 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(150 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(210 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(240 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(300 200 200)" />
+                    <line x1="200" y1="200" x2="200" y2="380" transform="rotate(330 200 200)" />
+                </g>
+
+                <!-- Small ticks -->
+                <g stroke="#333" stroke-width="1">
+                    <line x1="200" y1="15" x2="200" y2="25" />
+                    <line x1="200" y1="375" x2="200" y2="385" />
+                    <line x1="15" y1="200" x2="25" y2="200" />
+                    <line x1="375" y1="200" x2="385" y2="200" />
+                </g>
+
+                <!-- Indicators -->
+                <text x="195" y="10" fill="#444" font-size="8">0°</text>
+                <text x="385" y="205" fill="#444" font-size="8">90°</text>
+                <text x="190" y="398" fill="#444" font-size="8">180°</text>
+                <text x="0" y="205" fill="#444" font-size="8">270°</text>
+
+                <!-- Indicator Line and Dot -->
+                <line x1="200" y1="200" x2="280" y2="80" stroke="#666" stroke-width="0.5" stroke-dasharray="2,2" />
+                <circle class="focus-dot" cx="280" cy="80" r="5" fill="#FF4B2B" />
+            </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="content-side">
+            <div class="meta-header">
+                <div>V2.01</div>
+                <div>PRISON.OS</div>
+            </div>
+
+            <div class="hero-text">
+                <h1>Protecting personnel, <span class="dim">facilities</span> and <span class="dim">data</span> to work
+                    together.</h1>
+                <p>PRISON.OS is an intelligent infrastructure that connects to every secure perimeter, monitors every
+                    cell, and secures every protocol of your facility security.</p>
+
+                <div class="btn-group">
+                    <a href="{{ url_for('login') }}" class="btn-minimal btn-white">Explore System</a>
+                    <a onclick="scrollToFeatures()" class="btn-minimal btn-outline-dim">Detailed Specifications</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="feature-grid" id="specs-section">
+        <div class="minimal-card reveal-item">
+            <i class="fas fa-shield-halved"></i>
+            <h3>Perimeter Armor</h3>
+            <p>Smart fence monitoring with instantly triggered response protocols and 24/7 autonomous surveillance.</p>
+        </div>
+        <div class="minimal-card reveal-item">
+            <i class="fas fa-bolt"></i>
+            <h3>Reactive Ops</h3>
+            <p>Millisecond response times via direct edge-to-cloud telemetry and automated lockdown systems.</p>
+        </div>
+    </div>
+
+    <!-- Final CTA -->
+    <div class="footer-cta">
+        <a href="{{ url_for('login') }}" class="btn-launch">LAUNCH SECURITY TERMINAL</a>
+    </div>
+
+    <script>
+        function scrollToFeatures() {
+            document.getElementById('specs-section').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Scroll Reveal Logic
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-item').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>
