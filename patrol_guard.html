@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Patrol Guard Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PRISON.OS</div>
+    <div style="margin-left:auto">
+      <a href="{{ url_for('dashboard') }}" class="logout-link">Back</a>
+      <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <h1>Patrol Guard Dashboard (level1+level2)</h1>
+    <p id="whoami"></p>
+
+    <div style="max-width:900px;">
+      <canvas id="chartPatrol"></canvas>
+    </div>
+
+    <h2>Alerts</h2>
+    <div id="alerts"></div>
+  </main>
+
+  <script>
+    async function whoami() { const r = await fetch('/api/whoami'); const j = await r.json(); document.getElementById('whoami').innerText = j.user ? `${j.user} • ${j.role}` : 'not logged'; }
+    whoami();
+
+    const socket = io('/live', { transports: ['websocket'] });
+    socket.on('connect', () => { socket.emit('subscribe', { room: 'patrol' }); });
+    socket.on('patrol-data', (d) => { addPointToChart(d); storePoint('patrol', d); });
+    socket.on('alert', (a) => { renderAlert(a); });
+
+    const ctx = document.getElementById('chartPatrol').getContext('2d');
+    const chart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'temperature', data: [] }]}, options: {} });
+
+    function addPointToChart(pt) {
+      chart.data.labels.push(new Date(pt.time).toLocaleTimeString());
+      chart.data.datasets[0].data.push(pt.value);
+      if (chart.data.labels.length > 60) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
+      chart.update();
+    }
+
+    async function loadInitial() {
+      const resp = await fetch('/api/data/patrol');
+      if (!resp.ok) { document.getElementById('alerts').innerText = 'Failed to load patrol data'; return; }
+      const pts = await resp.json();
+      pts.forEach(p => addPointToChart(p));
+    }
+    loadInitial();
+
+    function renderAlert(a) {
+      const el = document.getElementById('alerts');
+      const node = document.createElement('div');
+      node.textContent = `[${new Date().toLocaleTimeString()}] ${a.kind}: ${a.message}`;
+      el.prepend(node);
+    }
+
+    function openDB() { return new Promise((resolve, reject) => { const r = indexedDB.open('prison_dashboard', 1); r.onupgradeneeded = () => { r.result.createObjectStore('points', { keyPath: 'id', autoIncrement: true }); }; r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); }); }
+    async function storePoint(kind, payload) { const db = await openDB(); const tx = db.transaction('points','readwrite'); tx.objectStore('points').add({ kind, payload, ts: Date.now() }); }
+  </script>
+</body>
+</html>
