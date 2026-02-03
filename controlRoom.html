@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Control Room Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PRISON.OS</div>
+    <div style="margin-left:auto">
+      <a href="{{ url_for('dashboard') }}" class="logout-link">Back</a>
+      <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <h1>Control Room (level2 only)</h1>
+    <p id="whoami"></p>
+
+    <div style="max-width:900px;">
+      <canvas id="chartControl"></canvas>
+    </div>
+
+    <h2>Alerts</h2>
+    <div id="alerts"></div>
+    <hr />
+    <h3>Create Alert</h3>
+    <form id="alertForm">
+      <input name="kind" placeholder="kind (e.g. fence, fire)" />
+      <input name="message" placeholder="message" style="width:60%" />
+      <button type="submit">Send Alert</button>
+    </form>
+  </main>
+
+  <script>
+    // fetch whoami
+    async function whoami() {
+      const r = await fetch('/api/whoami');
+      const j = await r.json();
+      document.getElementById('whoami').innerText = j.user ? `${j.user} • ${j.role}` : 'not logged';
+    }
+    whoami();
+
+    const token = null; // session-based auth used
+
+    const socket = io('/live', { transports: ['websocket'] });
+    socket.on('connect', () => {
+      socket.emit('subscribe', { room: 'control' });
+    });
+    socket.on('control-data', (d) => {
+      addPointToChart(d);
+      storePoint('control', d);
+    });
+    socket.on('alert', (a) => {
+      renderAlert(a);
+    });
+
+    // Chart
+    const ctx = document.getElementById('chartControl').getContext('2d');
+    const chart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'people_count', data: [] }]}, options: {} });
+
+    function addPointToChart(pt) {
+      const t = new Date(pt.time).toLocaleTimeString();
+      chart.data.labels.push(t);
+      chart.data.datasets[0].data.push(pt.value);
+      if (chart.data.labels.length > 60) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
+      chart.update();
+    }
+
+    async function loadInitial() {
+      const resp = await fetch('/api/data/controlroom');
+      if (!resp.ok) {
+        const txt = await resp.text();
+        document.getElementById('alerts').insertAdjacentText('afterbegin','Failed load control data: '+txt);
+        return;
+      }
+      const pts = await resp.json();
+      pts.forEach(p => addPointToChart(p));
+    }
+    loadInitial();
+
+    // Alerts UI
+    function renderAlert(a) {
+      const el = document.getElementById('alerts');
+      const node = document.createElement('div');
+      node.textContent = `[${new Date().toLocaleTimeString()}] ${a.kind}: ${a.message} (sent: ${a.sent_to || ''})`;
+      el.prepend(node);
+    }
+
+    document.getElementById('alertForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = { kind: fd.get('kind'), message: fd.get('message') };
+      const res = await fetch('/api/alerts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (res.ok) {
+        e.target.reset();
+        alert('Alert created');
+      } else {
+        alert('Failed to create alert');
+      }
+    });
+
+    // IndexedDB helper
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const r = indexedDB.open('prison_dashboard', 1);
+        r.onupgradeneeded = () => { r.result.createObjectStore('points', { keyPath: 'id', autoIncrement: true }); };
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      });
+    }
+    async function storePoint(kind, payload) {
+      const db = await openDB();
+      const tx = db.transaction('points','readwrite');
+      tx.objectStore('points').add({ kind, payload, ts: Date.now() });
+    }
+  </script>
+</body>
+</html>
