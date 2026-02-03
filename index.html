@@ -1,198 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Prison System | Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Prison System | Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <div class="logo">PRISON.OS</div>
+  <nav class="navbar">
+    <div class="navbar-brand"><div class="logo">PRISON.OS</div></div>
+    <ul class="nav-links horizontal">
+      <li class="nav-item active" onclick="switchTab('overview')"><i class="fas fa-th-large"></i> Overview</li>
+      <li class="nav-item"><a href="{{ url_for('control_room_page') }}" style="color:inherit; text-decoration:none;"><i class="fas fa-shield-alt"></i> Control Room</a></li>
+      <li class="nav-item"><a href="{{ url_for('patrol_guard_page') }}" style="color:inherit; text-decoration:none;"><i class="fas fa-user-shield"></i> Patrol Guard</a></li>
+      <li class="nav-item" onclick="switchTab('analytics')"><i class="fas fa-chart-line"></i> Analytics</li>
+    </ul>
+    <div class="navbar-actions">
+      <div id="connection-status" class="badge badge-success">INFLUXDB CONNECTED</div>
+      <a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <header>
+      <div class="header-title">
+        <h1 id="page-title">Welcome back, {{ user|capitalize }}</h1>
+        <p id="current-time">Security Overview • Real-time status monitor</p>
+      </div>
+      <div class="header-actions"><div id="system-health" class="badge badge-success">System Stable</div></div>
+    </header>
+
+    <div id="overview-view" class="tab-view active">
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Live Presence</span><div class="card-icon"><i class="fas fa-users"></i></div></div>
+          <div class="card-value" id="val-people-count-ov">0</div>
+          <p class="card-subtitle">Active detections in Facility A</p>
         </div>
-        <ul class="nav-links horizontal">
-            <li class="nav-item active" onclick="switchTab('overview')">
-                <i class="fas fa-th-large"></i> Overview
-            </li>
-            <li class="nav-item" onclick="switchTab('control_room')">
-                <i class="fas fa-shield-alt"></i> Control Room
-            </li>
-            <li class="nav-item" onclick="switchTab('patrol_guard')">
-                <i class="fas fa-user-shield"></i> Patrol Guard
-            </li>
-            <li class="nav-item" onclick="switchTab('analytics')">
-                <i class="fas fa-chart-line"></i> Analytics
-            </li>
-        </ul>
-        <div class="navbar-actions">
-            <div id="connection-status" class="badge badge-success">INFLUXDB CONNECTED</div>
-            <a href="{{ url_for('logout') }}" class="logout-link">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
+        <div class="card chart-container" style="grid-column: span 2;">
+          <div class="card-header"><span class="card-title">System Telemetry (Real-time)</span></div>
+          <canvas id="overviewChart"></canvas>
         </div>
-    </nav>
+      </div>
+    </div>
 
-    <main class="main-content">
-        <header>
-            <div class="header-title">
-                <h1 id="page-title">Welcome back, {{ user|capitalize }}</h1>
-                <p id="current-time">Security Overview • Real-time status monitor</p>
-            </div>
-            <div class="header-actions">
-                <div id="system-health" class="badge badge-success">System Stable</div>
-            </div>
-        </header>
-
-        <div class="dashboard-views">
-            <!-- OVERVIEW VIEW -->
-            <div id="overview-view" class="tab-view active">
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Live Presence</span>
-                            <div class="card-icon"><i class="fas fa-users"></i></div>
-                        </div>
-                        <div class="card-value" id="val-people-count-ov">0</div>
-                        <p class="card-subtitle">Active detections in Facility A</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Security Status</span>
-                            <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
-                        </div>
-                        <div class="card-value" id="val-system-status-ov">STABLE</div>
-                        <div class="badge badge-success">Protocol 1-A</div>
-                    </div>
-                    <div class="card chart-container" style="grid-column: span 2;">
-                        <div class="card-header">
-                            <span class="card-title">System Telemetry (Real-time)</span>
-                        </div>
-                        <canvas id="overviewChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONTROL ROOM VIEW -->
-            <div id="control_room-view" class="tab-view">
-                <div class="dashboard-grid">
-                    <div class="card lockdown-card"
-                        style="grid-column: span 2; background: rgba(255, 75, 43, 0.05); border-color: rgba(255, 75, 43, 0.2);">
-                        <div class="card-header">
-                            <span class="card-title">Emergency Protocols</span>
-                            <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
-                        </div>
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                            <div>
-                                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Master Facility Lockdown</h2>
-                                <p style="color: var(--text-secondary);">Instantly secure all external gates and
-                                    internal cell blocks.</p>
-                            </div>
-                            <button class="lockdown-btn" id="btn-lockdown">INITIATE LOCKDOWN</button>
-                        </div>
-                    </div>
-
-                    <div class="card" id="card-door-status">
-                        <div class="card-header">
-                            <span class="card-title">Main Entry Gate</span>
-                            <div class="card-icon"><i class="fas fa-door-closed"></i></div>
-                        </div>
-                        <div class="card-value" id="val-door-status">LOCKED</div>
-                        <div class="badge badge-success" id="badge-door-status">Secure</div>
-                    </div>
-
-                    <div class="card" id="card-fence">
-                        <div class="card-header">
-                            <span class="card-title">Perimeter Sensors</span>
-                            <div class="card-icon"><i class="fas fa-broadcast-tower"></i></div>
-                        </div>
-                        <div class="card-value" id="val-fence-status">CLEAR</div>
-                        <div class="badge badge-success" id="badge-fence-status">No Activity</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PATROL GUARD VIEW -->
-            <div id="patrol_guard-view" class="tab-view">
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Assigned Guards</span>
-                            <div class="card-icon"><i class="fas fa-user-shield"></i></div>
-                        </div>
-                        <div class="card-value">12 / 12</div>
-                        <div class="badge badge-success">All Active</div>
-                    </div>
-
-                    <div class="card" id="card-temp">
-                        <div class="card-header">
-                            <span class="card-title">Environment Temp</span>
-                            <div class="card-icon"><i class="fas fa-thermometer-half"></i></div>
-                        </div>
-                        <div class="card-value" id="val-temp">0°C</div>
-                        <div class="card-trend" id="trend-temp">Normal</div>
-                    </div>
-
-                    <div class="card" id="card-hum">
-                        <div class="card-header">
-                            <span class="card-title">Cell Humidity</span>
-                            <div class="card-icon"><i class="fas fa-tint"></i></div>
-                        </div>
-                        <div class="card-value" id="val-hum">0%</div>
-                        <div class="card-trend">Optimal</div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Guard Duty Status</span>
-                        </div>
-                        <div class="guard-list">
-                            <div
-                                style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--card-border);">
-                                <span>Unit Alpha (Entry)</span>
-                                <span style="color: var(--success); font-size: 0.8rem;"><i class="fas fa-circle"></i> On
-                                    Duty</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
-                                <span>Unit Beta (Block B)</span>
-                                <span style="color: var(--success); font-size: 0.8rem;"><i class="fas fa-circle"></i> On
-                                    Duty</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ANALYTICS VIEW -->
-            <div id="analytics-view" class="tab-view">
-                <div class="dashboard-grid">
-                    <div class="card chart-container" style="grid-column: span 2;">
-                        <div class="card-header">
-                            <span class="card-title">Historical Atmospheric Trends</span>
-                        </div>
-                        <canvas id="mainChart"></canvas>
-                    </div>
-
-                    <div class="card" style="height: 400px; overflow-y: auto;">
-                        <div class="card-header">
-                            <span class="card-title">Encrypted Security Logs</span>
-                        </div>
-                        <div id="event-logs" style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="font-size: 0.85rem; color: var(--text-secondary);">Initializing logs...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div id="analytics-view" class="tab-view">
+      <div class="dashboard-grid">
+        <div class="card chart-container" style="grid-column: span 2;">
+          <div class="card-header"><span class="card-title">Historical Atmospheric Trends</span></div>
+          <canvas id="mainChart"></canvas>
         </div>
-    </main>
+        <div class="card" style="height: 400px; overflow-y: auto;">
+          <div class="card-header"><span class="card-title">Encrypted Security Logs</span></div>
+          <div id="event-logs" style="display:flex;flex-direction:column;gap:1rem;"><div style="font-size:0.85rem;color:var(--text-secondary);">Initializing logs...</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
-
 </html>
