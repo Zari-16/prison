@@ -1,5 +1,8 @@
-flask
-flask-socketio
-influxdb-client
-python-dotenv
-eventlet
+Flask==2.2.5
+Flask-SocketIO==5.3.2
+influxdb-client==1.35.0
+python-dotenv==1.0.0
+eventlet==0.33.3
+Flask-SQLAlchemy==2.5.1
+Flask-Mail==0.9.1
+werkzeug==2.2.3
